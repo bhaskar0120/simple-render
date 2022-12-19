@@ -17,6 +17,6 @@ This project is to explore the field of rendering engines
 To view the output image use the [Simper image viewer](https://github.com/bhaskar0120/Simper) - (Python version Recommended ✅)
 
 ### How to compile the engine
-Compile using `make.sh` file.
+Compile using `make.sh` file. (_Careful: it also runs the file_)
 
 Although you can also compile it using your favourite compiler as it has no dependencies on external library

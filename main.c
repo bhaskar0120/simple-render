@@ -12,18 +12,11 @@ int convert_to_big_endian(int num) {
 }
 
 int main(){
-  // Vector 
-  Vector v = {
-    .x = 2,
-    .y = 0,
-    .z = 0
-  };
-
-  // Sphere
+  // Create shapes
   struct Shape sphere = {
     .position = {
       .x = 0,
-      .y = 0,
+      .y = .5,
       .z = 6
     },
     .parameter1 = 1.0,
@@ -31,27 +24,43 @@ int main(){
     .normal = sphere_normal
   };
 
+  struct Shape plane = {
+    .position = {
+      .x = 0,
+      .y = -1,
+      .z = 0,
+    },
+    .vec_parameter = {
+      .x = 0,
+      .y = 1,
+      .z = 0
+    },
+    .distance = infinite_plane_distance,
+    .normal = infinite_plane_normal
+};
+
   // Create a scene
 
   struct Scene scene = {
-    .shapes = {sphere},
-    .shape_count = 1,
+    .shapes = {sphere, plane},
+    .shape_count = 2,
     .light = {
-      .x = 0,
-      .y = 0,
-      .z = 0
+      .x = 1,
+      .y = 4,
+      .z = 4
     },
     .camera = {
       .x = 0,
       .y = 0,
       .z = 0
-    }
+    },
+    .background = {0, 0, 0}
   };
 
   //create an image buffer
 
-  int width = 1080;
-  int height = 800;
+  int width = 800;
+  int height = 600;
   char* image = (char*)malloc(height * width * 3);
 
   // Render the scene
@@ -62,15 +71,14 @@ int main(){
   int height_big_endian = convert_to_big_endian(height);
 
 
-  // Write image height width a file as 4 byte bigendian to a file name "image.simp"
+  // Write image height, width in a file as 4 byte bigendian 
   // The image is in RGB format with 8 bits per channel
+
   FILE *f = fopen("image.simp", "wb");
   fwrite(&height_big_endian, sizeof(int), 1, f);
   fwrite(&width_big_endian, sizeof(int), 1, f);
   fwrite(image, sizeof(char), width * height * 3, f);
   fclose(f);
 
-
-  printf("Sphere distance: %f\n", sphere.distance(sphere, v)); // Expected: 1
   return 0;
 }

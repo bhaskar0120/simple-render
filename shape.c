@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdbool.h>
 
 #define SHAPE_LIMIT 256
 
@@ -23,6 +24,7 @@ struct Scene {
   size_t shape_count;
   Vector light;
   Vector camera;
+  char background[3];
 } ;
 
 
@@ -52,6 +54,11 @@ Vector mul(Vector a, float b) {
   return (Vector){a.x * b, a.y * b, a.z * b};
 }
 
+float clamp(float x, float min, float max) {
+  if (x < min) return min;
+  if (x > max) return max;
+  return x;
+}
 // Distance function of shapes
 
 float sphere_distance(struct Shape sphere, Vector p) {
@@ -79,15 +86,39 @@ Vector infinite_plane_normal(struct Shape plane, Vector _p) {
 
 // Render function
 
-#define MIN_DISTANCE 0.001
-#define MAX_DISTANCE 1000
-#define MAX_ITERATION 50
+#define MIN_DISTANCE 0.01
+#define MAX_DISTANCE 100
+#define MAX_ITERATION 500
+
+bool in_shadow(struct Scene scene, Vector point){
+  // Ray march from point to light
+  // if collision before reaching light, return true
+  // else return false
+  
+  Vector light = scene.light;
+  Vector direction = normalize(sub(light, point));
+  for (int i = 0; i < MAX_ITERATION; i++) {
+    float distance;
+    for(size_t i = 0; i < scene.shape_count; ++i) {
+      struct Shape shape = scene.shapes[i];
+      float d = shape.distance(shape, add(point, mul(direction, distance)));
+      distance = fmin(distance, d);
+    }
+    if(distance < MIN_DISTANCE) return true;
+    float distance_to_light = length(sub(light, point));
+    if(distance > distance_to_light) return false;
+    point = add(point, mul(direction, distance));
+  }
+  return false;
+}
 
 Vector get_intersection(struct Scene scene, Vector p, Vector* normal) {
   float distance = 0;
   size_t idx = 0;
+
   // Ray marching
-  for(int iter = 0; iter < MAX_ITERATION; ++iter){
+  size_t iter = 0;
+  for(iter = 0; iter < MAX_ITERATION; ++iter){
     // find closest shape from camera+p*distance
     float ds = MAX_DISTANCE;
     for(size_t i = 0; i < scene.shape_count; ++i) {
@@ -97,17 +128,20 @@ Vector get_intersection(struct Scene scene, Vector p, Vector* normal) {
         ds = d;
         idx = i;
       }
-      if(ds < MIN_DISTANCE) break;
+      if(ds < MIN_DISTANCE){
+        *normal = scene.shapes[idx].normal(scene.shapes[idx], add(scene.camera, mul(p, distance)));
+        return add(scene.camera, mul(p, distance));
+      }
+        
     }
     distance += ds;
     if(distance > MAX_DISTANCE){
-      *normal = (Vector){0, 0, 0};
-      return (Vector){MAX_DISTANCE,MAX_DISTANCE, MAX_DISTANCE};
+      break;
     }
-    if(ds < MIN_DISTANCE) break;
   }
-  *normal = scene.shapes[idx].normal(scene.shapes[idx], add(scene.camera, mul(p, distance)));
-  return add(scene.camera, mul(p, distance));
+  normal->x = normal->y = normal->z = 0;
+  return (Vector){MAX_DISTANCE, MAX_DISTANCE, MAX_DISTANCE};
+
 }
 
 void render(char* img_buffer, int height, int width, struct Scene scene) {
@@ -122,25 +156,34 @@ void render(char* img_buffer, int height, int width, struct Scene scene) {
 
       Vector intersection =  get_intersection(scene, ray, &normal);
 
-      //get color from normal
-      float r = (normal.x + 1) * 0.5;
-      float g = (normal.y + 1) * 0.5;
-      float b = (normal.z + 1) * 0.5;
+      if(fabs(MAX_DISTANCE-intersection.x) < 0.001 
+          || fabs(MAX_DISTANCE-intersection.y) < 0.001
+          || fabs(MAX_DISTANCE-intersection.z) < 0.001) {
+        img_buffer[((height-i-1) * width + j)*3 + 0] = scene.background[0];
+        img_buffer[((height-i-1) * width + j)*3 + 1] = scene.background[1];
+        img_buffer[((height-i-1) * width + j)*3 + 2] = scene.background[2];
+        continue;
+      }
 
+      if(in_shadow(scene, intersection)){
+        img_buffer[((height-i-1) * width + j)*3 + 0] = 
+        img_buffer[((height-i-1) * width + j)*3 + 1] = 
+        img_buffer[((height-i-1) * width + j)*3 + 2] = 
+          (char)0;
+        continue;
+      }
 
-      // get distance from intersection to camera
-      float distance = length(sub(intersection, scene.camera));
+      // brightness = dot(normal, light-intersection)
+      float brightness = dot(normal, normalize(sub(scene.light, intersection)));
+      brightness = clamp(brightness, 0, 1);
 
-      // convert distance to color
-      float brightness = 1 - fmin(distance / MAX_DISTANCE, 1);
-      
       // convert brightness to color
       int color = (int)(brightness * 255);
 
-      // write color to image buffer
-      img_buffer[((height-i-1) * width + j)*3 + 0] = (char)(r * 255);
-      img_buffer[((height-i-1) * width + j)*3 + 1] = (char)(g * 255);
-      img_buffer[((height-i-1) * width + j)*3 + 2] = (char)(b * 255);
+      img_buffer[((height-i-1) * width + j)*3 + 0] = 
+      img_buffer[((height-i-1) * width + j)*3 + 1] = 
+      img_buffer[((height-i-1) * width + j)*3 + 2] = 
+        (char)(color);
     }
   }
 }

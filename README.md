@@ -1,14 +1,19 @@
 # Simple Render
-It is a very simple rendering engine that uses **Ray Marching Techinique**
-This project is to explore the field of rendering engines
+It is a very simple rendering engine that uses **Ray Marching Techinique**. This project is to explore the field of rendering engines and ray marching techniques
+
+### ToDo
+- [x] Make different shapes
+- [x] Add shadows
+- [ ] Add boolean operators
+- [ ] Add color to light
 
 ### Engine Details
 
 #### Shapes that the engine supports
 - [x] Sphere
 - [x] Infinite plane
-- [ ] Axis aligned infinite plane
-- [ ] Axis aligned infinite cylinder
+- [x] Capsule
+- [x] Torus
 
 #### Lighting that the engine supports
 - [x] Simple Sun Lamp Lighting
@@ -38,6 +43,29 @@ This project is to explore the field of rendering engines
   .distance = infinite_plane_distance;          // inbuilt function which can be used for planes
   .normal ( (struct Shape, Vector) => Vector)   // a function that gives Normal vector at the given surface point
   .normal = infinite_plane_normal;              // inbuilt function which can be used for planes
+```
+
+*Capsule*
+```
+  .position (Vector)                            // position of one of the spheres
+  .vec_parameter (Vector)                       // relative position of second sphere
+  .parameter1 (float)                           // radius of the spheres
+  .distance ( (struct Shape, Vector) => float)  // a function that gives distance between point and capsule surface 
+  .distance = capsule_distance;                 // inbuilt function which can be used for capsule
+  .normal ( (struct Shape, Vector) => Vector)   // a function that gives Normal vector at the given surface point
+  .normal = capsule_normal;                     // inbuilt function which can be used for capsule
+```
+
+*Torus*
+```
+  .position (Vector)                            // position of the torus
+  .vec_parameter (Vector)                       // normal of the torus
+  .parameter1 (float)                           // radius of the torus
+  .parameter2 (float)                           // thickness of the torus
+  .distance ( (struct Shape, Vector) => float)  // a function that gives distance between point and torus 
+  .distance = torus_distance;                   // inbuilt function which can be used for torus
+  .normal ( (struct Shape, Vector) => Vector)   // a function that gives Normal vector at the given surface point
+  .normal = torus_normal;                       // inbuilt function which can be used for torus
 ```
 
 *Scene*: Scene struct is sturct that contains the entire scene 

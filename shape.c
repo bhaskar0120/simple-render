@@ -1,4 +1,4 @@
-#include <math.h>
+#include <math.h> 
 #include <stdbool.h>
 
 #define SHAPE_LIMIT 256
@@ -54,11 +54,20 @@ Vector mul(Vector a, float b) {
   return (Vector){a.x * b, a.y * b, a.z * b};
 }
 
+Vector cross(Vector a, Vector b) {
+  return (Vector){
+    a.y * b.z - a.z * b.y,
+    a.z * b.x - a.x * b.z,
+    a.x * b.y - a.y * b.x
+  };
+}
+
 float clamp(float x, float min, float max) {
   if (x < min) return min;
   if (x > max) return max;
   return x;
 }
+
 // Distance function of shapes
 
 float sphere_distance(struct Shape sphere, Vector p) {
@@ -71,6 +80,23 @@ float infinite_plane_distance(struct Shape plane, Vector p) {
   return dot(sub(p, plane.position), normalize(plane.vec_parameter));
 }
 
+float capsule_distance(struct Shape capsule, Vector p){
+  // vec_parameter is vector connecting the two ends of the capsule
+  // parameter1 is radius
+
+  return length (sub(sub(p,capsule.position), mul( capsule.vec_parameter, clamp( dot(capsule.vec_parameter,sub(p,capsule.position))/ dot(capsule.vec_parameter,capsule.vec_parameter),0,1) ) )) - capsule.parameter1;
+}
+
+float torus_distance(struct Shape torus, Vector p){
+  // vec_parameter is normal
+  // parameter1 is radius of the torus
+  // parameter2 is radius of the tube
+
+  Vector np = sub(p, torus.position);
+  float y = dot(np, normalize(torus.vec_parameter));
+  Vector c = mul(normalize( sub(np, mul(normalize(torus.vec_parameter), y)) ), torus.parameter1);
+  return length(sub(np, c)) - torus.parameter2;
+}
 
 
 // Normal function of shapes
@@ -83,6 +109,20 @@ Vector infinite_plane_normal(struct Shape plane, Vector _p) {
   return plane.vec_parameter;
 }
 
+Vector capsule_normal(struct Shape capsule, Vector p){
+  Vector vp = capsule.vec_parameter;
+  Vector a = capsule.position;
+  Vector np = sub(p, a);
+
+  return normalize (sub(np, mul( vp, clamp( dot(vp,np)/ dot(vp,vp),0,1) ) ));
+}
+
+Vector torus_normal(struct Shape torus, Vector p){
+  Vector np = sub(p, torus.position);
+  float y = dot(np, normalize(torus.vec_parameter));
+  Vector c = mul(normalize( sub(np, mul(normalize(torus.vec_parameter), y)) ), torus.parameter1);
+  return normalize(sub(np, c));
+}
 
 // Render function
 

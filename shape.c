@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #define SHAPE_LIMIT 256
+typedef unsigned char Color;
 
 typedef struct {
   float x, y, z;
@@ -13,7 +14,7 @@ struct Shape {
   float parameter1;
   float parameter2;
   float parameter3;
-
+  Color color[3];
   float (*distance)(struct Shape shape, Vector point);
   Vector (*normal)(struct Shape shape, Vector point);
 
@@ -24,7 +25,7 @@ struct Scene {
   size_t shape_count;
   Vector light;
   Vector camera;
-  char background[3];
+  Color background[3];
 } ;
 
 
@@ -184,7 +185,7 @@ Vector get_intersection(struct Scene scene, Vector p, Vector* normal) {
 
 }
 
-void render(char* img_buffer, int height, int width, struct Scene scene) {
+void render(Color* img_buffer, int height, int width, struct Scene scene) {
   for(int i = 0; i < height; i++) {
     for(int j = 0; j < width; j++) {
       float x = ((float)j / width ) -0.5;
@@ -220,6 +221,13 @@ void render(char* img_buffer, int height, int width, struct Scene scene) {
       // convert brightness to color
       int color = (int)(brightness * 255);
 
+      //TODO: 
+      // 1. Get color of object from get_intersection function
+      // 2 Convert color to HSV
+      // 3. Change value of color to brightness
+      // 4. Convert color back to RGB
+      // 5. Set color of pixel to color
+      
       img_buffer[((height-i-1) * width + j)*3 + 0] = 
       img_buffer[((height-i-1) * width + j)*3 + 1] = 
       img_buffer[((height-i-1) * width + j)*3 + 2] = 

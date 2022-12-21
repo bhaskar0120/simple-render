@@ -21,7 +21,9 @@ int main(){
     },
     .parameter1 = .5,
     .distance = sphere_distance,
-    .normal = sphere_normal
+    .normal = sphere_normal,
+    .color = {255, 0, 0}
+    
   };
 
   struct Shape plane = {
@@ -36,7 +38,8 @@ int main(){
       .z = 0
     },
     .distance = infinite_plane_distance,
-    .normal = infinite_plane_normal
+    .normal = infinite_plane_normal,
+    .color = {255, 255, 255}
   };
 
   struct Shape capsule= {
@@ -52,7 +55,8 @@ int main(){
     },
     .parameter1 = 0.25,
     .distance = capsule_distance,
-    .normal = capsule_normal
+    .normal = capsule_normal,
+    .color = {0, 0, 255}
   };
 
   struct Shape torus = {
@@ -69,7 +73,8 @@ int main(){
     .parameter1 = 0.5,
     .parameter2 = 0.3,
     .distance = torus_distance,
-    .normal = torus_normal
+    .normal = torus_normal,
+    .color = {255, 255, 0}
   };
 
 
@@ -96,7 +101,7 @@ int main(){
   int height = 600;
 
   // create an image buffer
-  char* image = (char*)malloc(height * width * 3);
+  Color* image = (Color*)malloc(height * width * 3);
 
   // Render the scene
   render(image, height, width, scene);
